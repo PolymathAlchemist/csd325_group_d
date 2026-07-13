@@ -6,8 +6,8 @@ Group D repo
 Prof. Ed Parks  
 
 Group D:
-Jarred Morris, 
-Jack Summers, 
-Eric J. Turman, 
-Dejah Van Assch, 
-Jacob young
+* Jarred Morris
+* Jack Summers
+* Eric J. Turman
+* Dejah Van Assch
+* Jacob young
