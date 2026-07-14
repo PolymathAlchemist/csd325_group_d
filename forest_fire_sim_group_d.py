@@ -72,7 +72,8 @@ PAUSE_LENGTH = 0.5
 # ============================================================================
 
 def main() -> None:
-    """Run the forest fire simulation.
+    """
+    Run the forest fire simulation.
 
     Returns
     -------
@@ -129,7 +130,8 @@ def main() -> None:
 
 
 def create_new_forest() -> dict:
-    """Create a new forest data structure.
+    """
+    Create a new forest data structure.
 
     Returns
     -------
@@ -147,7 +149,8 @@ def create_new_forest() -> dict:
 
 
 def display_forest(forest: dict) -> None:
-    """Display the forest data structure on the screen.
+    """
+    Display the forest data structure on the screen.
 
     Parameters
     ----------
