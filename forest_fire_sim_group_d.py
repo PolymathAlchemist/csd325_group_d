@@ -1,6 +1,6 @@
 """
 CSD325-T301 Advanced Python
-Instructor: Professor Sloan
+Instructor: Professor Parks
 Assignment: Module 6.2 - forest_fire_sim_group_d.py
 Authors:
     Jared Morris
@@ -14,11 +14,16 @@ Emails:
     Jared Morris
     Jack Summers
     ejturman@my365.bellevue.edu
-    Dejah Van Assche
+    dvanassche@my365.Bellevue.edu
     Jacob Young
 
 Changes:
-we can list the changes here
+    Added a centered lake.
+    Added permanent water cells.
+    Prevented tree growth and fire spread in water.
+    Added blue water display.
+    Refactored the simulation update into update_forest().
+    Corrected the initial tree-density probability calculation.
 
 
 Original attribution:
@@ -57,7 +62,10 @@ HEIGHT = 22
 TREE = 'A'
 FIRE = '@'
 EMPTY = ' '
-WATER = 'O'
+WATER = '~'
+
+LAKE_WIDTH = 7
+LAKE_HEIGHT = 5
 
 # (!) Try changing these settings to anything between 0.0 and 1.0:
 INITIAL_TREE_DENSITY = 0.20  # Amount of forest that starts with trees.
@@ -86,47 +94,7 @@ def main() -> None:
 
     while True:  # Main program loop.
         display_forest(forest)
-
-        # Run a single simulation step:
-        next_forest = {
-            'width': forest['width'],
-            'height': forest['height'],
-        }
-
-        for x in range(forest['width']):
-            for y in range(forest['height']):
-                if (x, y) in next_forest:
-                    # If we've already set next_forest[(x, y)] on a
-                    # previous iteration, just do nothing here:
-                    continue
-
-                if (
-                    (forest[(x, y)] == EMPTY)
-                    and (random.random() <= GROW_CHANCE)
-                ):
-                    # Grow a tree in this empty space.
-                    next_forest[(x, y)] = TREE
-                elif (
-                    (forest[(x, y)] == TREE)
-                    and (random.random() <= FIRE_CHANCE)
-                ):
-                    # Lightning sets this tree on fire.
-                    next_forest[(x, y)] = FIRE
-                elif forest[(x, y)] == FIRE:
-                    # This tree is currently burning.
-                    # Loop through all the neighboring spaces:
-                    for ix in range(-1, 2):
-                        for iy in range(-1, 2):
-                            # Fire spreads to neighboring trees:
-                            if forest.get((x + ix, y + iy)) == TREE:
-                                next_forest[(x + ix, y + iy)] = FIRE
-                    # The tree has burned down now, so erase it:
-                    next_forest[(x, y)] = EMPTY
-                else:
-                    # Just copy the existing object:
-                    next_forest[(x, y)] = forest[(x, y)]
-        forest = next_forest
-
+        forest = update_forest(forest)
         time.sleep(PAUSE_LENGTH)
 
 
@@ -142,20 +110,81 @@ def create_new_forest() -> dict:
     forest = {'width': WIDTH, 'height': HEIGHT}
     for x in range(WIDTH):
         for y in range(HEIGHT):
-            if (random.random() * 100) <= INITIAL_TREE_DENSITY:
+            if random.random() <= INITIAL_TREE_DENSITY:
                 forest[(x, y)] = TREE  # Start as a tree.
             else:
                 forest[(x, y)] = EMPTY  # Start as an empty space.
+
     forest_center_x = WIDTH // 2
     forest_center_y = HEIGHT // 2
-    #dimensions of the lake
-    lake_width = 7
-    lake_height = 5
-    for x in range(forest_center_x - lake_width // 2, forest_center_x + lake_width // 2 + 1):
-        for y in range(forest_center_y - lake_height // 2, forest_center_y + lake_height // 2 + 1):
+
+    # Place a permanent lake in the center of the forest.
+    lake_left = forest_center_x - LAKE_WIDTH // 2
+    lake_right = forest_center_x + LAKE_WIDTH // 2 + 1
+    lake_top = forest_center_y - LAKE_HEIGHT // 2
+    lake_bottom = forest_center_y + LAKE_HEIGHT // 2 + 1
+
+    for x in range(lake_left, lake_right):
+        for y in range(lake_top, lake_bottom):
             forest[(x, y)] = WATER  # Create a lake in the center.
 
     return forest
+
+
+def update_forest(forest: dict) -> dict:
+    """
+    Create the next forest state for one simulation step.
+
+    Parameters
+    ----------
+    forest : dict
+        Dictionary containing forest dimensions and cell contents.
+
+    Returns
+    -------
+    dict
+        A new dictionary containing the updated forest state.
+    """
+    next_forest = {
+        'width': forest['width'],
+        'height': forest['height'],
+    }
+
+    for x in range(forest['width']):
+        for y in range(forest['height']):
+            if (x, y) in next_forest:
+                # If this cell was already set by fire spread, leave it alone.
+                continue
+
+            if forest[(x, y)] == WATER:
+                next_forest[(x, y)] = WATER
+            elif (
+                (forest[(x, y)] == EMPTY)
+                and (random.random() <= GROW_CHANCE)
+            ):
+                # Grow a tree in this empty space.
+                next_forest[(x, y)] = TREE
+            elif (
+                (forest[(x, y)] == TREE)
+                and (random.random() <= FIRE_CHANCE)
+            ):
+                # Lightning sets this tree on fire.
+                next_forest[(x, y)] = FIRE
+            elif forest[(x, y)] == FIRE:
+                # This tree is currently burning.
+                # Loop through all the neighboring spaces:
+                for ix in range(-1, 2):
+                    for iy in range(-1, 2):
+                        # Fire spreads to neighboring trees, but not water.
+                        if forest.get((x + ix, y + iy)) == TREE:
+                            next_forest[(x + ix, y + iy)] = FIRE
+                # The tree has burned down now, so erase it:
+                next_forest[(x, y)] = EMPTY
+            else:
+                # Just copy the existing object:
+                next_forest[(x, y)] = forest[(x, y)]
+
+    return next_forest
 
 
 def display_forest(forest: dict) -> None:
@@ -181,11 +210,12 @@ def display_forest(forest: dict) -> None:
             elif forest[(x, y)] == FIRE:
                 bext.fg('red')
                 print(FIRE, end='')
-            elif forest[(x, y)] == EMPTY:
-                print(EMPTY, end='')
             elif forest[(x, y)] == WATER:
                 bext.fg('blue')
                 print(WATER, end='')
+            elif forest[(x, y)] == EMPTY:
+                print(EMPTY, end='')
+
         print()
     bext.fg('reset')  # Use the default font color.
     print('Grow chance: {}%  '.format(GROW_CHANCE * 100), end='')
