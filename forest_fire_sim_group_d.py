@@ -50,13 +50,14 @@ except ImportError:
 # Constants
 # ============================================================================
 
+# Set up the constants:
 WIDTH = 79
 HEIGHT = 22
 
 TREE = 'A'
 FIRE = '@'
 EMPTY = ' '
-WATER = 'W'
+WATER = 'O'
 
 # (!) Try changing these settings to anything between 0.0 and 1.0:
 INITIAL_TREE_DENSITY = 0.20  # Amount of forest that starts with trees.
@@ -145,11 +146,14 @@ def create_new_forest() -> dict:
                 forest[(x, y)] = TREE  # Start as a tree.
             else:
                 forest[(x, y)] = EMPTY  # Start as an empty space.
-
-    #creates lake that does not move between forest generations 7/17
-    for x in range(35, 40):
-        for y in range(10,20):
-            forest[(x, y)] = WATER
+    forest_center_x = WIDTH // 2
+    forest_center_y = HEIGHT // 2
+    #dimensions of the lake
+    lake_width = 7
+    lake_height = 5
+    for x in range(forest_center_x - lake_width // 2, forest_center_x + lake_width // 2 + 1):
+        for y in range(forest_center_y - lake_height // 2, forest_center_y + lake_height // 2 + 1):
+            forest[(x, y)] = WATER  # Create a lake in the center.
 
     return forest
 
@@ -177,11 +181,11 @@ def display_forest(forest: dict) -> None:
             elif forest[(x, y)] == FIRE:
                 bext.fg('red')
                 print(FIRE, end='')
+            elif forest[(x, y)] == EMPTY:
+                print(EMPTY, end='')
             elif forest[(x, y)] == WATER:
                 bext.fg('blue')
                 print(WATER, end='')
-            elif forest[(x, y)] == EMPTY:
-                print(EMPTY, end='')
         print()
     bext.fg('reset')  # Use the default font color.
     print('Grow chance: {}%  '.format(GROW_CHANCE * 100), end='')
