@@ -9,7 +9,7 @@ Authors:
     Dejah Van Assche
     Jacob Young
 
-Date: 2026-07-13
+Date: 2026-07-19
 Emails:
     Jared Morris
     Jack Summers
@@ -55,7 +55,6 @@ except ImportError:
 # Constants
 # ============================================================================
 
-# Set up the constants:
 WIDTH = 79
 HEIGHT = 22
 
@@ -87,7 +86,7 @@ def main() -> None:
     Returns
     -------
     None
-        The simulation runs until interrupted.
+        The simulation runs until interrupted by CTRL+C.
     """
     forest = create_new_forest()
     bext.clear()
